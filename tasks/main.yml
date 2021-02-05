@@ -20,19 +20,14 @@
     state: present
   loop: "{{ haproxy_listen_servers }}"
 
-- name: Set seboolean for haproxy
+- name: 'Set seboolean for haproxy'
   ansible.posix.seboolean:
-    name: httpd_can_network_connect
+    name: 'haproxy_connect_any'
     state: true
     persistent: true
 
-- name: Allow HAProxy to listen to configured ports
-  community.general.seport:
-    ports: "{{ item['port'] }}"
-    proto: tcp
-    setype: http_port_t
-    state: present
-  loop: "{{ haproxy_listen_servers }}"
-
-- name: Ensure HAProxy is started and enabled on boot.
-  service: name=haproxy state=started enabled=yes
+- name: Ensure HAProxy is started and enabled on boot
+  service:
+    name: 'haproxy'
+    state: 'started'
+    enabled: 'yes'
