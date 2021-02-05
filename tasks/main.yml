@@ -1,0 +1,38 @@
+---
+- name: 'Ensure HAProxy is installed.'
+  package:
+    name: 'haproxy'
+    state: 'present'
+
+- name: Copy HAProxy configuration in place.
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    mode: 0644
+    validate: haproxy -f %s -c -q
+  notify: restart haproxy
+
+- name: Allow HAProxy to listen to configured ports
+  community.general.seport:
+    ports: "{{ item['port'] }}"
+    proto: tcp
+    setype: http_port_t
+    state: present
+  loop: "{{ haproxy_listen_servers }}"
+
+- name: Set seboolean for haproxy
+  ansible.posix.seboolean:
+    name: httpd_can_network_connect
+    state: true
+    persistent: true
+
+- name: Allow HAProxy to listen to configured ports
+  community.general.seport:
+    ports: "{{ item['port'] }}"
+    proto: tcp
+    setype: http_port_t
+    state: present
+  loop: "{{ haproxy_listen_servers }}"
+
+- name: Ensure HAProxy is started and enabled on boot.
+  service: name=haproxy state=started enabled=yes

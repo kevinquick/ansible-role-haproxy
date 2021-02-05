@@ -1,0 +1,23 @@
+---
+haproxy_socket: '/var/lib/haproxy/stats'
+haproxy_chroot: '/var/lib/haproxy'
+haproxy_user: 'haproxy'
+haproxy_group: 'haproxy'
+
+# Set default mode: <tcp/http>
+haproxy_default_mode: 'http'
+
+
+# HAProxy listen server settings
+haproxy_listen_servers:
+- name: 'example1'
+  address: '10.0.0.8:80'
+  backend_name: 'srv1'
+  backend_address: '192.168.1.1:80'
+- name: 'example2'
+  address: '*:8080'
+  backend_name: 'srv2'
+  backend_address: '192.168.1.2:80'
+
+# Extra global vars
+haproxy_global_vars: []
