@@ -1,0 +1,12 @@
+# Backend configuration for {{ item['name'] }}
+backend {{ item['name'] }}
+    mode {{ item['mode'] }}
+    balance {{ item['balance_method'] }}
+{% if item['mode'] == 'http' %}
+    option forwardfor
+    cookie SERVERID insert indirect
+{% endif %}
+{% for backend in item['servers'] %}
+    server {{ backend['address'] }} {{ backend['address'] }}:{{ backend['port'] }}{% if item['mode'] == 'http' %} cookie {{ item['name'] }}{% endif %} check
+{% endfor %}
+

@@ -4,21 +4,53 @@
     name: 'haproxy'
     state: 'present'
 
-- name: Copy HAProxy configuration in place.
-  template:
-    src: haproxy.cfg.j2
-    dest: /etc/haproxy/haproxy.cfg
-    mode: 0644
-    validate: haproxy -f %s -c -q
-  notify: restart haproxy
+- name: 'Ensure conf.d folder exists for haproxy configurations'
+  file:
+    path: '/etc/haproxy/conf.d'
+    state: 'directory'
+    mode: 0755
 
-- name: Allow HAProxy to listen to configured ports
+- name: 'Copy global configuration'
+  template:
+    src: '00_global.cfg.j2'
+    dest: '/etc/haproxy/conf.d/00_global.cfg'
+    mode: 0644
+  notify: 'restart haproxy'
+
+- name: 'Copy frontend configurations'
+  template:
+    src: 'frontend.cfg.j2'
+    dest: "/etc/haproxy/conf.d/{{ '%02d' | format(item.weight) }}_frontend.cfg"
+    mode: 0644
+  notify: 'restart haproxy'
+  loop: "{{ haproxy_frontends }}"
+
+- name: 'Copy backend configurations'
+  template:
+    src: 'backend.cfg.j2'
+    dest: "/etc/haproxy/conf.d/{{ '%02d' | format(item.weight) }}_backend.cfg"
+    mode: 0644
+  notify: 'restart haproxy'
+  loop: "{{ haproxy_backends }}"
+
+- name: 'Merge configs and restart SSHD'
+  assemble:
+    dest: '/etc/haproxy/haproxy.cfg'
+    src: '/etc/haproxy/conf.d'
+    owner: 'root'
+    group: 'root'
+    mode: 0644
+    validate: 'haproxy -f %s -c -q'
+  notify:
+    - 'restart haproxy'
+
+- name: 'Allow HAProxy to listen to configured ports'
   community.general.seport:
     ports: "{{ item['port'] }}"
-    proto: tcp
-    setype: http_port_t
-    state: present
-  loop: "{{ haproxy_listen_servers }}"
+    proto: 'tcp'
+    setype: 'http_port_t'
+    state: 'present'
+  loop: "{{ haproxy_frontends }}"
 
 - name: 'Set seboolean for haproxy'
   ansible.posix.seboolean:
@@ -26,8 +58,8 @@
     state: true
     persistent: true
 
-- name: Ensure HAProxy is started and enabled on boot
+- name: 'Ensure HAProxy is started and enabled on boot'
   service:
     name: 'haproxy'
     state: 'started'
-    enabled: 'yes'
+    enabled: true

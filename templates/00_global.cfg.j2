@@ -18,10 +18,8 @@ global
 defaults
   log global
   mode  {{ haproxy_default_mode }}
-  {% if haproxy_default_mode == 'http' %}
-  option  httplog
-  {% endif %}
   option  dontlognull
   timeout connect 5000
   timeout client 50000
   timeout server 50000
+

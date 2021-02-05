@@ -1,0 +1,6 @@
+# Frontend configuration for {{ item['name'] }}
+frontend {{ item['name'] }}
+  bind {{ item['address'] }}:{{ item['port'] }}
+  mode {{ item['mode'] }}
+  default_backend {{ item['backend'] }}
+
