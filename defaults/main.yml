@@ -14,7 +14,7 @@ haproxy_frontends:
   address: 'example.com'
   port: 80
   backend: 'example_backend'
-  weight: 1
+  precedence: 1
 
 haproxy_backends:
 - name: 'example_backend'
@@ -25,4 +25,4 @@ haproxy_backends:
     port: 8080
   - address: '10.0.0.2'
     port: 8081
-  weight: 1
+  precedence: 1

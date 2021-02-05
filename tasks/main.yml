@@ -20,7 +20,7 @@
 - name: 'Copy frontend configurations'
   template:
     src: 'frontend.cfg.j2'
-    dest: "/etc/haproxy/conf.d/{{ '%02d' | format(item.weight) }}_frontend.cfg"
+    dest: "/etc/haproxy/conf.d/{{ '%02d' | format(item['precedence']) }}_frontend.cfg"
     mode: 0644
   notify: 'restart haproxy'
   loop: "{{ haproxy_frontends }}"
@@ -28,19 +28,19 @@
 - name: 'Copy backend configurations'
   template:
     src: 'backend.cfg.j2'
-    dest: "/etc/haproxy/conf.d/{{ '%02d' | format(item.weight) }}_backend.cfg"
+    dest: "/etc/haproxy/conf.d/{{ '%02d' | format(item['precedence']) }}_backend.cfg"
     mode: 0644
   notify: 'restart haproxy'
   loop: "{{ haproxy_backends }}"
 
-- name: 'Merge configs and restart SSHD'
+- name: 'Merge configs and restart HAProxy'
   assemble:
     dest: '/etc/haproxy/haproxy.cfg'
     src: '/etc/haproxy/conf.d'
     owner: 'root'
     group: 'root'
     mode: 0644
-    validate: 'haproxy -f %s -c -q'
+    validate: 'haproxy -f /etc/haproxy/%s -c -q'
   notify:
     - 'restart haproxy'
 
